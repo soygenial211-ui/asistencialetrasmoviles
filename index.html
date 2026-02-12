@@ -2,40 +2,91 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Asistencia Hunter - Alfabeto Completo</title>
+    <title>Asistencia Hunter - Profesor M</title>
     <style>
         body {
             margin: 0;
+            padding: 0;
             overflow: hidden;
             background-color: #050505;
             font-family: 'Courier New', Courier, monospace;
             color: #00ff41;
             user-select: none;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
-        #ui-layer {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            text-align: center;
+        /* ÁREA SUPERIOR FUERA DEL REBOTE */
+        #header-zone {
+            height: 280px; /* Ajustado para incluir la autoría */
+            background: #0a0a0a;
+            border-bottom: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* LEYENDA DEL AUTOR */
+        #author-tag {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         #display-name {
-            font-size: 3rem;
-            min-width: 450px;
+            font-size: 3.5rem;
+            min-width: 500px;
             height: 90px;
             background: rgba(0, 255, 65, 0.05);
             border: 3px solid #00ff41;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
-            box-shadow: 0 0 25px rgba(0, 255, 65, 0.3);
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
             padding: 0 25px;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 5px;
+        }
+
+        #timer-container {
+            width: 556px; 
+            height: 12px;
+            background: #222;
+            border-radius: 0 0 15px 15px;
+            overflow: hidden;
+            border: 3px solid #00ff41;
+            border-top: none;
+        }
+
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #ff4d4d, #00ff41);
+            transition: width 0.1s linear;
+        }
+
+        #instructions {
+            margin-top: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff41;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        /* ÁREA DE JUEGO */
+        #game-zone {
+            flex-grow: 1;
+            position: relative;
+            width: 100%;
         }
 
         .floating-item {
@@ -45,27 +96,33 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            will-change: left, top; /* Optimización de rendimiento */
+            will-change: transform;
         }
 
         .letter {
-            font-size: 5rem; 
+            font-size: 5.5rem; 
             color: #00ff41;
             text-shadow: 0 0 15px #00ff41;
         }
 
+        .vowel {
+            color: #bcffb0;
+            text-shadow: 0 0 20px #00ff41;
+        }
+
         .btn-send {
-            font-size: 7rem;
+            font-size: 8rem;
             color: #4da6ff;
-            text-shadow: 0 0 30px #4da6ff;
+            text-shadow: 0 0 35px #4da6ff;
         }
 
         .btn-clear {
-            font-size: 5rem;
+            font-size: 6rem;
             color: #ff4d4d;
-            text-shadow: 0 0 25px #ff4d4d;
+            text-shadow: 0 0 30px #ff4d4d;
         }
 
+        /* PANTALLA FINAL */
         #final-screen {
             position: fixed;
             top: 0;
@@ -77,16 +134,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 999;
+            z-index: 9999;
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.8s ease;
         }
 
         #final-name {
-            font-size: 12rem;
+            font-size: 14rem;
             color: white;
-            text-shadow: 0 0 40px #ffffff, 0 0 70px #4da6ff;
+            text-shadow: 0 0 50px #ffffff, 0 0 100px #4da6ff;
             text-align: center;
             text-transform: uppercase;
             animation: pulse 2s infinite;
@@ -94,35 +151,70 @@
 
         @keyframes pulse {
             0% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.08); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 1; }
             100% { transform: scale(1); opacity: 0.9; }
         }
     </style>
 </head>
 <body>
 
-<div id="ui-layer">
+<div id="header-zone">
+    <div id="author-tag">Hecha por: Profesor M</div>
     <div id="display-name"></div>
-    <p>CAZA LAS LETRAS DE TU NOMBRE</p>
+    <div id="timer-container">
+        <div id="timer-bar"></div>
+    </div>
+    <div id="instructions">CAZA LAS LETRAS DE TU NOMBRE</div>
 </div>
+
+<div id="game-zone"></div>
 
 <div id="final-screen">
     <div id="final-name"></div>
-    <p style="color: #4da6ff; font-size: 2rem; margin-top: 40px; letter-spacing: 10px; font-weight: bold;">PRESENTE</p>
-    <button onclick="location.reload()" style="margin-top: 50px; background: none; border: 1px solid #333; color: #333; cursor: pointer; padding: 10px;">Reiniciar para el siguiente</button>
+    <p style="color: #4da6ff; font-size: 2rem; margin-top: 40px; letter-spacing: 15px; font-weight: bold;">PRESENTE</p>
+    <button onclick="location.reload()" style="margin-top: 60px; background: transparent; border: 1px solid #333; color: #444; cursor: pointer; padding: 15px; font-family: monospace; font-size: 1.2rem;">[ SIGUIENTE ALUMNO ]</button>
 </div>
 
 <script>
-    const uiLayer = document.getElementById('ui-layer');
+    const gameZone = document.getElementById('game-zone');
+    const headerZone = document.getElementById('header-zone');
     const finalScreen = document.getElementById('final-screen');
     const finalNameDiv = document.getElementById('final-name');
     const display = document.getElementById('display-name');
+    const timerBar = document.getElementById('timer-bar');
     
-    // El abecedario completo para asegurar disponibilidad
     const alfabeto = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
+    const vocales = "AEIOU".split("");
     let nombreFormado = "";
     let objetos = [];
     let animacionActiva = true;
+    
+    let timerId = null;
+    let tiempoRestante = 15;
+    const TIEMPO_TOTAL = 15;
+
+    function resetTimer() {
+        clearInterval(timerId);
+        timerId = null;
+        tiempoRestante = TIEMPO_TOTAL;
+        timerBar.style.width = "100%";
+    }
+
+    function startTimer() {
+        if (timerId !== null) return;
+        timerId = setInterval(() => {
+            tiempoRestante -= 0.1;
+            let porcentaje = (tiempoRestante / TIEMPO_TOTAL) * 100;
+            timerBar.style.width = porcentaje + "%";
+            if (tiempoRestante <= 0) borrarTodo();
+        }, 100);
+    }
+
+    function borrarTodo() {
+        nombreFormado = "";
+        display.innerText = "";
+        resetTimer();
+    }
 
     class FloatingElement {
         constructor(content, className, onClickAction) {
@@ -130,70 +222,65 @@
             this.element.className = 'floating-item ' + className;
             this.element.innerHTML = content;
             
-            // Margen para que no aparezcan pegadas al borde
-            this.x = Math.random() * (window.innerWidth - 150);
-            this.y = Math.random() * (window.innerHeight - 150);
+            const rect = gameZone.getBoundingClientRect();
             
-            // Velocidad lenta y suave
-            this.dx = (Math.random() - 0.5) * 1.8;
-            this.dy = (Math.random() - 0.5) * 1.8;
-
+            this.x = Math.random() * (rect.width - 120);
+            this.y = Math.random() * (rect.height - 120);
+            
+            this.dx = (Math.random() - 0.5) * 2.8; 
+            this.dy = (Math.random() - 0.5) * 2.8;
+            
             this.element.onclick = onClickAction;
-            document.body.appendChild(this.element);
+            gameZone.appendChild(this.element);
         }
 
         update() {
             if (!animacionActiva) return;
+            const rect = gameZone.getBoundingClientRect();
+
             this.x += this.dx;
             this.y += this.dy;
 
-            // Rebote en los bordes
-            if (this.x <= 0 || this.x >= window.innerWidth - 120) this.dx *= -1;
-            if (this.y <= 0 || this.y >= window.innerHeight - 120) this.dy *= -1;
+            if (this.x <= 0 || this.x >= rect.width - 100) this.dx *= -1;
+            if (this.y <= 0 || this.y >= rect.height - 100) this.dy *= -1;
 
-            this.element.style.left = this.x + 'px';
-            this.element.style.top = this.y + 'px';
+            this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
         }
 
-        remove() {
-            this.element.remove();
-        }
+        remove() { this.element.remove(); }
     }
 
-    // 1. CREAR UNA DE CADA LETRA (A-Z) para que nadie se quede sin su nombre
-    alfabeto.forEach(char => {
-        objetos.push(new FloatingElement(char, 'letter', () => {
-            nombreFormado += char;
+    alfabeto.forEach(letra => {
+        let esVocal = vocales.includes(letra);
+        objetos.push(new FloatingElement(letra, esVocal ? 'letter vowel' : 'letter', () => {
+            startTimer();
+            nombreFormado += letra;
             display.innerText = nombreFormado;
         }));
     });
 
-    // 2. AGREGAR EXTRAS ALEATORIOS (para que haya más movimiento)
-    for (let i = 0; i < 15; i++) {
-        let charAleatorio = alfabeto[Math.floor(Math.random() * alfabeto.length)];
-        objetos.push(new FloatingElement(charAleatorio, 'letter', () => {
-            nombreFormado += charAleatorio;
+    vocales.forEach(vocal => {
+        objetos.push(new FloatingElement(vocal, 'letter vowel', () => {
+            startTimer();
+            nombreFormado += vocal;
             display.innerText = nombreFormado;
         }));
+    });
+
+    for (let i = 0; i < 3; i++) {
+        objetos.push(new FloatingElement('✕', 'btn-clear', borrarTodo));
     }
 
-    // 3. BOTÓN ENVIAR (✓)
     objetos.push(new FloatingElement('✓', 'btn-send', () => {
-        if (nombreFormado.length === 0) return;
-        mostrarPantallaFinal();
-    }));
-
-    // 4. BOTÓN BORRAR (✕)
-    objetos.push(new FloatingElement('✕', 'btn-clear', () => {
-        nombreFormado = "";
-        display.innerText = "";
+        if (nombreFormado.length > 0) mostrarPantallaFinal();
     }));
 
     function mostrarPantallaFinal() {
         animacionActiva = false;
+        clearInterval(timerId);
         objetos.forEach(obj => obj.remove());
-        uiLayer.style.display = 'none';
-        
+        headerZone.style.display = 'none';
+        gameZone.style.display = 'none';
         finalNameDiv.innerText = nombreFormado;
         finalScreen.style.visibility = 'visible';
         finalScreen.style.opacity = '1';
