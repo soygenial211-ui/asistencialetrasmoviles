@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Asistencia Hunter - Alfabeto Completo</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ff41;
+            user-select: none;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+        }
+
+        #display-name {
+            font-size: 3rem;
+            min-width: 450px;
+            height: 90px;
+            background: rgba(0, 255, 65, 0.05);
+            border: 3px solid #00ff41;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.3);
+            padding: 0 25px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .floating-item {
+            position: absolute;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: left, top; /* Optimización de rendimiento */
+        }
+
+        .letter {
+            font-size: 5rem; 
+            color: #00ff41;
+            text-shadow: 0 0 15px #00ff41;
+        }
+
+        .btn-send {
+            font-size: 7rem;
+            color: #4da6ff;
+            text-shadow: 0 0 30px #4da6ff;
+        }
+
+        .btn-clear {
+            font-size: 5rem;
+            color: #ff4d4d;
+            text-shadow: 0 0 25px #ff4d4d;
+        }
+
+        #final-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        #final-name {
+            font-size: 12rem;
+            color: white;
+            text-shadow: 0 0 40px #ffffff, 0 0 70px #4da6ff;
+            text-align: center;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.9; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui-layer">
+    <div id="display-name"></div>
+    <p>CAZA LAS LETRAS DE TU NOMBRE</p>
+</div>
+
+<div id="final-screen">
+    <div id="final-name"></div>
+    <p style="color: #4da6ff; font-size: 2rem; margin-top: 40px; letter-spacing: 10px; font-weight: bold;">PRESENTE</p>
+    <button onclick="location.reload()" style="margin-top: 50px; background: none; border: 1px solid #333; color: #333; cursor: pointer; padding: 10px;">Reiniciar para el siguiente</button>
+</div>
+
+<script>
+    const uiLayer = document.getElementById('ui-layer');
+    const finalScreen = document.getElementById('final-screen');
+    const finalNameDiv = document.getElementById('final-name');
+    const display = document.getElementById('display-name');
+    
+    // El abecedario completo para asegurar disponibilidad
+    const alfabeto = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
+    let nombreFormado = "";
+    let objetos = [];
+    let animacionActiva = true;
+
+    class FloatingElement {
+        constructor(content, className, onClickAction) {
+            this.element = document.createElement('div');
+            this.element.className = 'floating-item ' + className;
+            this.element.innerHTML = content;
+            
+            // Margen para que no aparezcan pegadas al borde
+            this.x = Math.random() * (window.innerWidth - 150);
+            this.y = Math.random() * (window.innerHeight - 150);
+            
+            // Velocidad lenta y suave
+            this.dx = (Math.random() - 0.5) * 1.8;
+            this.dy = (Math.random() - 0.5) * 1.8;
+
+            this.element.onclick = onClickAction;
+            document.body.appendChild(this.element);
+        }
+
+        update() {
+            if (!animacionActiva) return;
+            this.x += this.dx;
+            this.y += this.dy;
+
+            // Rebote en los bordes
+            if (this.x <= 0 || this.x >= window.innerWidth - 120) this.dx *= -1;
+            if (this.y <= 0 || this.y >= window.innerHeight - 120) this.dy *= -1;
+
+            this.element.style.left = this.x + 'px';
+            this.element.style.top = this.y + 'px';
+        }
+
+        remove() {
+            this.element.remove();
+        }
+    }
+
+    // 1. CREAR UNA DE CADA LETRA (A-Z) para que nadie se quede sin su nombre
+    alfabeto.forEach(char => {
+        objetos.push(new FloatingElement(char, 'letter', () => {
+            nombreFormado += char;
+            display.innerText = nombreFormado;
+        }));
+    });
+
+    // 2. AGREGAR EXTRAS ALEATORIOS (para que haya más movimiento)
+    for (let i = 0; i < 15; i++) {
+        let charAleatorio = alfabeto[Math.floor(Math.random() * alfabeto.length)];
+        objetos.push(new FloatingElement(charAleatorio, 'letter', () => {
+            nombreFormado += charAleatorio;
+            display.innerText = nombreFormado;
+        }));
+    }
+
+    // 3. BOTÓN ENVIAR (✓)
+    objetos.push(new FloatingElement('✓', 'btn-send', () => {
+        if (nombreFormado.length === 0) return;
+        mostrarPantallaFinal();
+    }));
+
+    // 4. BOTÓN BORRAR (✕)
+    objetos.push(new FloatingElement('✕', 'btn-clear', () => {
+        nombreFormado = "";
+        display.innerText = "";
+    }));
+
+    function mostrarPantallaFinal() {
+        animacionActiva = false;
+        objetos.forEach(obj => obj.remove());
+        uiLayer.style.display = 'none';
+        
+        finalNameDiv.innerText = nombreFormado;
+        finalScreen.style.visibility = 'visible';
+        finalScreen.style.opacity = '1';
+    }
+
+    function animate() {
+        if (animacionActiva) {
+            objetos.forEach(obj => obj.update());
+        }
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+
+</body>
+</html>
